@@ -1,0 +1,3 @@
+mcp_llm_service/.env
+mcp_rag_server/.env
+slack_agent/.env

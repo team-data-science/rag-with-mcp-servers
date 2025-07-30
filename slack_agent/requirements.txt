@@ -1,0 +1,3 @@
+slack_sdk[socket_mode]
+python-dotenv
+requests
