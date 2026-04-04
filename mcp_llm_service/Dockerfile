@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.12-slim
 WORKDIR /app
 
 # Install curl for in-container testing
@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY mcp_llm_service/. .
 
-CMD ["python", "main.py"]
+CMD ["python", "server.py"]

@@ -1,7 +1,5 @@
-fastapi
-uvicorn
+mcp[cli]
+langchain-qdrant
+langchain-huggingface
 qdrant-client
-requests
-langchain
-langchain-core
 sentence-transformers

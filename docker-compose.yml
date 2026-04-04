@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   qdrant:
     image: qdrant/qdrant:v1.15.0
@@ -17,8 +15,10 @@ services:
       dockerfile: mcp_llm_service/Dockerfile
     ports:
       - "8000:8000"
-    env_file:
-      - mcp_llm_service/.env
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - MODEL_NAME=qwen2.5:7b
+      - PORT=8000
 
   mcp_rag:
     image: mcp-server/mcp-rag:latest
@@ -28,22 +28,52 @@ services:
       dockerfile: mcp_rag_server/Dockerfile
     ports:
       - "8001:8001"
-    env_file:
-      - mcp_rag_server/.env
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION=q-and-a
+      - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+      - PORT=8001
     depends_on:
       - qdrant
       - mcp_llm
 
-  slack_agent:
-    image: mcp-server/slack-agent:latest
-    container_name: slack-agent
+  # RAG MCP Agent: OpenAI-compatible FastAPI server that runs the LangGraph
+  # ReAct agent and connects to both MCP servers. Open WebUI talks to this
+  # service as if it were an OpenAI endpoint.
+  pipelines:
+    image: rag-mcp/pipelines:latest
+    container_name: pipelines
     build:
       context: .
-      dockerfile: slack_agent/Dockerfile
-    env_file:
-      - slack_agent/.env
+      dockerfile: openwebui_pipeline/Dockerfile
+    ports:
+      - "9099:9099"
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - MODEL_NAME=qwen2.5:7b
+      - LLM_MCP_URL=http://mcp_llm:8000/sse
+      - RAG_MCP_URL=http://mcp_rag:8001/sse
     depends_on:
+      - mcp_llm
       - mcp_rag
+    restart: unless-stopped
+
+  # Open WebUI: the chat interface. Configured to use the Pipelines service
+  # as its backend instead of a raw Ollama/OpenAI endpoint.
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: rag-mcp-ui
+    ports:
+      - "3000:8080"
+    volumes:
+      - open-webui_data:/app/backend/data
+    environment:
+      - OPENAI_API_BASE_URL=http://pipelines:9099
+      - OPENAI_API_KEY=0p3n-w3bu!
+    depends_on:
+      - pipelines
+    restart: unless-stopped
 
 volumes:
   qdrant_data:
+  open-webui_data:

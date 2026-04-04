@@ -1,4 +1,2 @@
-fastapi
-uvicorn
-requests
-langchain
+mcp[cli]
+langchain-ollama
