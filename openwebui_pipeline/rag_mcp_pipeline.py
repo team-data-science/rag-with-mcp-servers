@@ -19,7 +19,7 @@ from langgraph.prebuilt import create_react_agent
 logger = logging.getLogger(__name__)
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
-MODEL_NAME = os.getenv("MODEL_NAME", "mistral")
+MODEL_NAME = os.getenv("MODEL_NAME", "qwen2.5:7b")
 LLM_MCP_URL = os.getenv("LLM_MCP_URL", "http://mcp_llm:8000/sse")
 RAG_MCP_URL = os.getenv("RAG_MCP_URL", "http://mcp_rag:8001/sse")
 

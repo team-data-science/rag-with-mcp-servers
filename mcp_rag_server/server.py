@@ -19,7 +19,7 @@ HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8001"))
 
 # Load the embedding model once at startup — this is the same model used by
-# bulk_importer/writer.py so vectors are in the same space.
+# bulk_importer/voltedge_creator.py so vectors are in the same space.
 logger.info("Loading embedding model: %s", EMBEDDING_MODEL)
 embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 logger.info("Embedding model loaded")

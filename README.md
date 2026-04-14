@@ -26,7 +26,7 @@ Open WebUI (port 3000)          — chat interface, user accounts, conversation 
 openwebui_pipeline (port 9099)  — FastAPI server, hosts the LangGraph agent
    ↓
 LangGraph ReAct Agent           — reasons, selects tools, observes results
-   ├──→ MCP LLM Server (port 8000)   — tool: generate_text   (uses Ollama/mistral)
+   ├──→ MCP LLM Server (port 8000)   — tool: generate_text   (uses Ollama/qwen2.5:7b)
    └──→ MCP RAG Server (port 8001)   — tool: search_knowledge_base (uses Qdrant)
                                                     ↓
                                               Qdrant (port 6333)  — vector database
@@ -59,8 +59,8 @@ rag-with-mcp-servers/
 │   └── Dockerfile
 │
 ├── bulk_importer/                   # One-time data loader
-│   ├── writer.py                    # Reads CSV, generates embeddings, stores in Qdrant
-│   └── questions-answers.csv        # Your knowledge base (Question + Answer columns)
+│   ├── voltedge_creator.py          # Reads voltedge_qa.json, generates embeddings, stores in Qdrant
+│   └── voltedge_qa.json             # VoltEdge Q&A knowledge base (fictional company — unknown to Qwen)
 │
 └── docker-compose.yml               # Wires all services together
 ```
@@ -128,10 +128,8 @@ result = await agent.ainvoke({"messages": [HumanMessage(content="...")]})
 ### `langchain-ollama` — Local LLM Integration
 Connects LangChain to a locally running Ollama instance. Used in two places:
 
-1. **`mcp_llm_service/server.py`** — `ChatOllama` generates the final text response (uses `mistral`)
+1. **`mcp_llm_service/server.py`** — `ChatOllama` generates the final text response (uses `qwen2.5:7b`)
 2. **`openwebui_pipeline/rag_mcp_pipeline.py`** — `ChatOllama` drives the agent's reasoning (uses `qwen2.5:7b`)
-
-> **Why two different models?** The agent backbone needs strong tool-calling ability (`qwen2.5:7b`). The text generation step just needs to write good prose (`mistral`). Splitting them lets each model do what it is best at.
 
 ---
 
@@ -143,11 +141,11 @@ from langchain_qdrant import QdrantVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-store = QdrantVectorStore(client=qdrant_client, collection_name="q-and-a", embedding=embeddings)
+store = QdrantVectorStore(client=qdrant_client, collection_name="voltedge-qa", embedding=embeddings)
 docs = store.similarity_search(question, k=3)
 ```
 
-The same embedding model is used in `bulk_importer/writer.py` when loading the data. This is critical — the vectors must be in the same embedding space to be comparable.
+The same embedding model is used in `bulk_importer/voltedge_creator.py` when loading data. This is critical — the vectors must be in the same embedding space to be comparable.
 
 ---
 
@@ -173,7 +171,7 @@ The same embedding model is used in `bulk_importer/writer.py` when loading the d
    - **Observe:** "Found 3 relevant passages: ..."
    - **Think:** "I have context, now I'll generate a grounded answer"
    - **Act:** calls `generate_text("Use this context: ... Answer: What is X?")`
-   - The call goes via SSE to `mcp_llm:8000`, which sends the prompt to Ollama/mistral
+   - The call goes via SSE to `mcp_llm:8000`, which sends the prompt to Ollama/qwen2.5:7b
    - **Observe:** "The answer is ..."
    - **Think:** "I have the final answer"
 
@@ -228,19 +226,17 @@ Every protocol step is labelled and printed. This is what `MultiServerMCPClient`
 
 ### Prerequisites
 - Docker Desktop
-- Ollama running locally with the following models pulled:
+- Ollama running locally with the following model pulled:
   ```bash
-  ollama pull mistral        # used by mcp_llm for text generation
-  ollama pull qwen2.5:7b     # used by the agent backbone for tool calling
+  ollama pull qwen2.5:7b     # used by both mcp_llm (text generation) and the agent backbone (tool calling)
   ```
 
 ### 1 — Load data into Qdrant
 ```bash
 cd bulk_importer
 pip install qdrant-client sentence-transformers
-python writer.py
+python voltedge_creator.py
 ```
-Your `questions-answers.csv` must have `Question` and `Answer` columns.
 
 ### 2 — Start everything
 ```bash
@@ -278,10 +274,10 @@ All configuration lives in `docker-compose.yml`. Key variables:
 | Service | Variable | Default | Description |
 |---|---|---|---|
 | `mcp_llm` | `OLLAMA_BASE_URL` | `http://host.docker.internal:11434` | Where to reach Ollama |
-| `mcp_llm` | `MODEL_NAME` | `mistral` | Model used for text generation |
+| `mcp_llm` | `MODEL_NAME` | `qwen2.5:7b` | Model used for text generation |
 | `mcp_rag` | `QDRANT_URL` | `http://qdrant:6333` | Qdrant connection |
-| `mcp_rag` | `QDRANT_COLLECTION` | `q-and-a` | Collection to search |
-| `mcp_rag` | `EMBEDDING_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | Must match bulk_importer |
+| `mcp_rag` | `QDRANT_COLLECTION` | `voltedge-qa` | Collection to search |
+| `mcp_rag` | `EMBEDDING_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | Must match voltedge_creator.py |
 | `pipelines` | `MODEL_NAME` | `qwen2.5:7b` | Agent backbone model (needs tool calling support) |
 | `pipelines` | `LLM_MCP_URL` | `http://mcp_llm:8000/sse` | LLM MCP server endpoint |
 | `pipelines` | `RAG_MCP_URL` | `http://mcp_rag:8001/sse` | RAG MCP server endpoint |
@@ -293,9 +289,8 @@ All configuration lives in `docker-compose.yml`. Key variables:
 ### Why MCP instead of direct API calls?
 Without MCP, the agent would have hard-coded HTTP calls to specific endpoints. With MCP, the agent asks "what can you do?" at runtime and gets back a structured description. You can swap, add, or update tools without changing the agent code.
 
-### Why two separate models?
-- **Agent backbone (`qwen2.5:7b`):** Must reliably produce structured tool-call JSON. Not all models do this well.
-- **Text generation (`mistral`):** Just needs to write coherent prose. Many small models do this well.
+### Why qwen2.5:7b for everything?
+`qwen2.5:7b` handles both the agent's tool-calling reasoning and the final text generation. It has strong structured output support (needed for tool calls) while also producing coherent prose. Using a single model simplifies the setup — no need to pull and manage multiple models locally.
 
 ### Why Open WebUI instead of building a custom frontend?
 Open WebUI handles user authentication, conversation history, and the chat interface out of the box. Our agent code stays focused on intelligence, not plumbing.
