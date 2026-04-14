@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", None)
-QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "q-and-a")
+QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "voltedge-qa")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8001"))

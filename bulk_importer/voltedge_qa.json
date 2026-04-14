@@ -1,0 +1,238 @@
+[
+  {
+    "question": "How many charging stations does VoltEdge currently operate?",
+    "answer": "VoltEdge currently operates 1,000 charging stations across Europe."
+  },
+  {
+    "question": "How many charge ports does each VoltEdge station have?",
+    "answer": "Each VoltEdge charging station has 2 charge ports, giving a total of 2,000 ports fleet-wide."
+  },
+  {
+    "question": "What is VoltEdge's short-term expansion target?",
+    "answer": "Within the next 12 months VoltEdge plans to expand from 1,000 to 5,000 charging stations within Europe."
+  },
+  {
+    "question": "What is VoltEdge's mid-term expansion plan?",
+    "answer": "In the year following the European expansion, VoltEdge plans to enter the US market and deploy an additional 10,000 charging stations."
+  },
+  {
+    "question": "Which regions are part of VoltEdge's long-term expansion?",
+    "answer": "VoltEdge's long-term expansion targets South America and China."
+  },
+  {
+    "question": "What daily utilization rate does VoltEdge assume per port?",
+    "answer": "VoltEdge assumes 30% daily utilization per port."
+  },
+  {
+    "question": "What is the assumed average session duration at a VoltEdge station?",
+    "answer": "The assumed average charging session duration is 30 minutes."
+  },
+  {
+    "question": "How many sessions per port per day does VoltEdge estimate?",
+    "answer": "VoltEdge estimates approximately 14 sessions per port per day."
+  },
+  {
+    "question": "How many charging sessions happen fleet-wide per day in the current state?",
+    "answer": "With 2,000 ports at ~14 sessions each, the fleet generates approximately 28,000 sessions per day."
+  },
+  {
+    "question": "How many telemetry messages are sent per charging session?",
+    "answer": "Each charging session produces 1,800 telemetry messages (one per second over a 30-minute session)."
+  },
+  {
+    "question": "How many telemetry messages does VoltEdge receive per day across the entire fleet?",
+    "answer": "Approximately 50.4 million telemetry messages per day (2,000 ports × 14 sessions × 1,800 messages)."
+  },
+  {
+    "question": "At what interval does a VoltEdge charging station send telemetry data?",
+    "answer": "Charging stations transmit telemetry data every second during an active session."
+  },
+  {
+    "question": "How can a customer authenticate at a VoltEdge charging station?",
+    "answer": "Customers authenticate via the VoltEdge mobile app or a registered charging card linked to their account."
+  },
+  {
+    "question": "Does VoltEdge support credit card payments directly at the station?",
+    "answer": "No. Credit card payments directly at the station are not supported. VoltEdge uses only the mobile app and registered charging cards to simplify real-time payment authorization."
+  },
+  {
+    "question": "How is payment settled after a VoltEdge charging session?",
+    "answer": "Payment is settled automatically through the customer's registered account once the session is finalized."
+  },
+  {
+    "question": "What fields are included in VoltEdge's real-time telemetry dataset?",
+    "answer": "The telemetry dataset contains: session_id, station_id, port_id, timestamp, current_energy_kwh (cumulative), current_charging_speed_kw, ambient_temperature_celsius, charging_status (charging/paused/error), and error_code (if applicable)."
+  },
+  {
+    "question": "What values can the charging_status field take in VoltEdge telemetry?",
+    "answer": "The charging_status field can be: charging, paused, or error."
+  },
+  {
+    "question": "Is current_energy_kwh in VoltEdge telemetry cumulative or per-second?",
+    "answer": "current_energy_kwh is cumulative — it represents the total energy delivered since the session started."
+  },
+  {
+    "question": "Via which protocols does VoltEdge deliver real-time telemetry?",
+    "answer": "Real-time telemetry is delivered via streaming protocols (WebSockets or MQTT) or a REST API."
+  },
+  {
+    "question": "What fields are included in the VoltEdge charging session summary dataset?",
+    "answer": "The session summary includes: session_id, station_id, port_id, start_time, end_time, session_duration_minutes, energy_delivered_kwh, pricing_model, price_per_kwh, total_cost, location_region, location_country, location_state (optional), gps_latitude, gps_longitude, firmware_version, user_id (hashed), payment_method, payment_status, currency, station_status_before, station_status_after, error_code, error_description, charging_speed_max_kw, charging_speed_min_kw, ambient_temperature_celsius (average), network_latency_ms (average), retry_attempts, data_ingested_at."
+  },
+  {
+    "question": "When is the VoltEdge session summary payload sent?",
+    "answer": "The session summary is sent once at session end via REST API."
+  },
+  {
+    "question": "What is the primary purpose of the VoltEdge session summary dataset?",
+    "answer": "The session summary is used for billing and accounting, compliance and audit requirements, analytical workloads, and business process optimization."
+  },
+  {
+    "question": "Is location_state a required field in the VoltEdge session summary?",
+    "answer": "No, location_state is optional in the session summary."
+  },
+  {
+    "question": "How is user identity stored in the VoltEdge session summary?",
+    "answer": "The user_id field is hashed and anonymized at the source before transmission."
+  },
+  {
+    "question": "What cloud provider hosts VoltEdge's current data platform?",
+    "answer": "VoltEdge's current internal network is hosted on AWS."
+  },
+  {
+    "question": "How do VoltEdge charging stations connect to the backend?",
+    "answer": "Each charging station establishes a VPN connection into VoltEdge's internal network on AWS."
+  },
+  {
+    "question": "What database does VoltEdge's current architecture use?",
+    "answer": "A single PostgreSQL database stores all operational and analytical data in the current architecture."
+  },
+  {
+    "question": "How does a charging station write data in VoltEdge's current architecture?",
+    "answer": "For every transmission (authentication, telemetry, session writes), the station opens a direct database connection and executes SQL queries against PostgreSQL."
+  },
+  {
+    "question": "Which BI tool do VoltEdge data analysts use?",
+    "answer": "Internal data analysts use Microsoft Power BI, connecting directly to the PostgreSQL database."
+  },
+  {
+    "question": "How do VoltEdge's mobile app and website access data?",
+    "answer": "The mobile app and website connect through a simple backend API that directly queries the same PostgreSQL database."
+  },
+  {
+    "question": "How can VoltEdge operations teams access a charging station remotely?",
+    "answer": "Operations teams use the VPN connection to access individual stations directly, allowing them to reboot a station, perform maintenance, or diagnose offline or malfunctioning stations."
+  },
+  {
+    "question": "What are VoltEdge's analytical goals for the data platform?",
+    "answer": "VoltEdge's analytical goals include: infrastructure optimization, dynamic pricing strategies, service downtime monitoring, charging behavior insights, demand forecasting, predictive maintenance, and regional performance comparison."
+  },
+  {
+    "question": "What are VoltEdge's transactional goals for the data platform?",
+    "answer": "Transactional goals include: real-time payment authorization and settlement, charging session activation/deactivation, real-time user interface updates, and immediate malfunction detection and alerts."
+  },
+  {
+    "question": "Who are the downstream data consumers of VoltEdge's platform?",
+    "answer": "Downstream consumers include: Business Analysts, Data Scientists, Payment Systems, Mobile Applications, Charging Station Interfaces (customer-facing), Customer Support Teams, Regulatory & Compliance Teams, and customers themselves during charging."
+  },
+  {
+    "question": "By which dimensions does VoltEdge aggregate data?",
+    "answer": "Data is aggregated by station, port, region, and time (hourly, daily, monthly)."
+  },
+  {
+    "question": "What data modeling approach does VoltEdge use for reporting?",
+    "answer": "VoltEdge uses a star schema for reporting and a snowflake schema for complex analysis."
+  },
+  {
+    "question": "What partitioning strategy does VoltEdge apply to its data warehouse?",
+    "answer": "Tables are partitioned by date and indexed by station and region."
+  },
+  {
+    "question": "Does VoltEdge use pre-aggregations? For what purpose?",
+    "answer": "Yes, VoltEdge maintains pre-aggregations for common metrics to support fast analytical queries."
+  },
+  {
+    "question": "What is VoltEdge's end-to-end authorization SLA for starting a charging session?",
+    "answer": "The total time from presenting the charging card (or confirming in the app) to the physical start of charging must not exceed 1 second, including authentication, backend validation, and the command sent to the station."
+  },
+  {
+    "question": "How frequently do VoltEdge analytical dashboards refresh?",
+    "answer": "Analytical dashboards refresh every 15 minutes."
+  },
+  {
+    "question": "What is the expected query runtime for VoltEdge analytical dashboards?",
+    "answer": "Dashboard queries are expected to complete in seconds to minutes."
+  },
+  {
+    "question": "What latency expectation exists for live charging updates in the VoltEdge app?",
+    "answer": "During an active session, updates must feel real-time with no noticeable latency to the user."
+  },
+  {
+    "question": "What happens to VoltEdge telemetry data older than one month?",
+    "answer": "Detailed telemetry metrics older than 1 month are moved to cold storage. Before archival, the data is aggregated into hourly and daily summaries to support ad-hoc queries."
+  },
+  {
+    "question": "How long does VoltEdge retain transactional session and payment data?",
+    "answer": "Transactional session and payment data is retained for 7 years."
+  },
+  {
+    "question": "What retention policy applies to VoltEdge session summary records?",
+    "answer": "Charging session summary data must remain fully available long-term for analysis and compliance purposes."
+  },
+  {
+    "question": "Can VoltEdge delete aggregated metrics after a period of time?",
+    "answer": "Aggregated metrics may be retained long-term for historical trend analysis — no mandatory deletion policy is defined for them."
+  },
+  {
+    "question": "What operational metrics does VoltEdge monitor in its data platform?",
+    "answer": "VoltEdge monitors: latency, throughput, error rates, retry rates, and data completeness."
+  },
+  {
+    "question": "What data governance artefacts must VoltEdge maintain?",
+    "answer": "VoltEdge must maintain audit trails, data lineage, and source tracking including firmware version."
+  },
+  {
+    "question": "Why does VoltEdge track firmware_version in the session summary?",
+    "answer": "Firmware version is tracked as part of source tracking requirements for data lineage and audit purposes."
+  },
+  {
+    "question": "How does VoltEdge authenticate charging stations to its backend?",
+    "answer": "Each station uses API keys or certificates for authentication."
+  },
+  {
+    "question": "Is VoltEdge data encrypted in transit and at rest?",
+    "answer": "Yes, VoltEdge encrypts all data both in transit and at rest."
+  },
+  {
+    "question": "How does VoltEdge handle failed data transmissions from stations?",
+    "answer": "Stations retry with exponential backoff on failure."
+  },
+  {
+    "question": "How does VoltEdge deduplicate incoming data?",
+    "answer": "Deduplication is performed using the combination of session_id and timestamp."
+  },
+  {
+    "question": "Does VoltEdge's platform support late-arriving data?",
+    "answer": "Yes, late data handling is explicitly supported."
+  },
+  {
+    "question": "What scalability requirements does VoltEdge have for its data platform?",
+    "answer": "The platform must support exponential growth, scale horizontally, handle regional compliance differences, and adapt aggregation and retention strategies as scale increases."
+  },
+  {
+    "question": "What information is shown on a VoltEdge station display during charging?",
+    "answer": "The station display shows: current charging time, current charging rate in kW, energy delivered in kWh, and estimated price."
+  },
+  {
+    "question": "What information does the VoltEdge mobile app show during an active session?",
+    "answer": "The mobile app shows: charging location, session status, and accumulated cost."
+  },
+  {
+    "question": "What triggers the end of a VoltEdge charging session?",
+    "answer": "A session ends either manually (the customer stops it) or automatically (e.g., battery full or a preset limit is reached)."
+  },
+  {
+    "question": "What data format does VoltEdge use for both its datasets?",
+    "answer": "Both the real-time telemetry and the session summary datasets are delivered in JSON format."
+  }
+]
